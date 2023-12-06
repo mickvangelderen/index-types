@@ -2,6 +2,16 @@
 name = "index-types"
 version = "0.1.0"
 edition = "2021"
+authors = ["Mick van Gelderen <mickvangelderen@gmail.com>"]
+categories = ["data-structures","embedded","game-development","no-std","rust-patterns"]
+keywords = ["small", "index", "type", "null-pointer-optimization"]
+description = """
+Small and "null pointer optimization"-elegible index types.
+"""
+repository = "https://github.com/mickvangelderen/index-types"
+license = "MIT OR Apache-2.0"
+documentation = "https://docs.rs/index-types"
+homepage = "https://github.com/mickvangelderen/index-types"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
