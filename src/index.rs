@@ -42,11 +42,11 @@ macro_rules! impl_index {
             }
         }
 
-        impl Add<$Int> for $Index {
+        impl Add<usize> for $Index {
             type Output = Self;
 
             #[inline]
-            fn add(self, rhs: $Int) -> Self::Output {
+            fn add(self, rhs: usize) -> Self::Output {
                 // NOTE: Performing the addition on the underlying NonZero$Int which stores index + 1
                 // directly eliminates `dec` and `inc` instructions.
 
@@ -55,6 +55,7 @@ macro_rules! impl_index {
                 // only uses `jb`.
                 Self($NonMax({
                     let Self($NonMax(lhs_inc)) = self;
+                    let rhs = rhs.try_into().ok().unwrap_or_else(index_too_large);
                     let sum_inc = lhs_inc
                         .get()
                         .checked_add(rhs)
@@ -66,16 +67,16 @@ macro_rules! impl_index {
             }
         }
 
-        forward_ref_binop! { impl Add, add for $Index, $Int }
+        forward_ref_binop! { impl Add, add for $Index, usize }
 
-        impl AddAssign<$Int> for $Index {
+        impl AddAssign<usize> for $Index {
             #[inline]
-            fn add_assign(&mut self, rhs: $Int) {
+            fn add_assign(&mut self, rhs: usize) {
                 *self = *self + rhs;
             }
         }
 
-        forward_ref_op_assign! { impl AddAssign, add_assign for $Index, $Int }
+        forward_ref_op_assign! { impl AddAssign, add_assign for $Index, usize }
 
         delegate_get_fmt! {
             (Debug, Display, Binary, Octal, LowerHex, UpperHex) for $Index
@@ -147,7 +148,7 @@ mod tests {
         assert_eq!(IndexU8::new(0) + 0, IndexU8::new(0));
         assert_eq!(IndexU8::new(0) + 1, IndexU8::new(1));
         assert_eq!(IndexU8::new(1) + 1, IndexU8::new(2));
-        assert_eq!(IndexU8::new(0) + (u8::MAX - 1), IndexU8::new(u8::MAX - 1));
+        assert_eq!(IndexU8::new(0) + (u8::MAX as usize - 1), IndexU8::new(u8::MAX - 1));
         assert_eq!(IndexU8::new(u8::MAX - 1) + 0, IndexU8::new(u8::MAX - 1));
     }
 
@@ -161,5 +162,11 @@ mod tests {
     #[should_panic(expected = "index too large")]
     fn index_add_past_max_panics() {
         _ = IndexU8::new(u8::MAX - 1) + 2;
+    }
+
+    #[test]
+    #[should_panic(expected = "index too large")]
+    fn index_add_rhs_overflow_panics() {
+        _ = IndexU8::new(0) + (u8::MAX as usize + 1);
     }
 }
